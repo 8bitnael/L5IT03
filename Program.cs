@@ -5,13 +5,12 @@ using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+ 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 
-// Configurazione della connessione al database
+//database connection on ElephantSQL with connectionString
 var connectionString = "Host=surus.db.elephantsql.com;Port=5432;Username=rcdcrzoc;Password=CQ9R3n-DnGcPvwcKRhXgyxz1cDbBkWJN;Database=rcdcrzoc";
 builder.Services.AddSingleton<IDbConnection>(new NpgsqlConnection(connectionString));
 
@@ -26,10 +25,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Inizializza la lista degli Employee
+//  Employee List
 var employees = new List<Employee>();
 
-// Endpoint per ottenere tutti gli Employee dal database
+// Endpoint * Employee from database
 app.MapGet("/api/employees", async (IDbConnection dbConnection) =>
 {
     var sql = "SELECT * FROM Employees";
@@ -37,7 +36,7 @@ app.MapGet("/api/employees", async (IDbConnection dbConnection) =>
     return result;
 });
 
-
+//get Employee by id
 app.MapGet("/api/employees/{id}", async (IDbConnection dbConnection, int id) =>
 {
     var sql = @"
@@ -51,13 +50,13 @@ app.MapGet("/api/employees/{id}", async (IDbConnection dbConnection, int id) =>
     return result != null ? Results.Ok(result) : Results.NotFound();
 });
 
-
+//ADD NEW EMPLOYEE
 app.MapPost("/api/employees", async (IDbConnection dbConnection, Employee employee) =>
 {
     var sql = @"
         INSERT INTO Employees (Name, Surname, Position, DepartmentId)
         VALUES (@Name, @Surname, @Position, @DepartmentId)
-        RETURNING *"; // Utilizzo RETURNING * per ottenere i dati inseriti, incluso l'ID assegnato automaticamente
+        RETURNING *";  
 
     var insertedEmployee = await dbConnection.QueryFirstOrDefaultAsync<Employee>(sql, employee);
 
@@ -67,12 +66,12 @@ app.MapPost("/api/employees", async (IDbConnection dbConnection, Employee employ
     }
     else
     {
-        // Gestire il caso in cui l'inserimento non abbia restituito alcun dato (errore)
+        // ERROR 
         return Results.BadRequest("Errore durante l'inserimento del dipendente.");
     }
 });
 
-// Endpoint per modificare un Employee esistente nel database
+// Endpoint edit Employee in database
 app.MapPut("/api/employees/{id}", async (IDbConnection dbConnection, int id, Employee employee) =>
 {
     var sql = "UPDATE Employees SET Name = @Name, Position = @Position WHERE Id = @Id";
@@ -80,7 +79,7 @@ app.MapPut("/api/employees/{id}", async (IDbConnection dbConnection, int id, Emp
     return affectedRows > 0 ? Results.NoContent() : Results.NotFound();
 });
 
-// Endpoint per eliminare un Employee dal database
+// Endpoint delete Employee from database
 app.MapDelete("/api/employees/{id}", async (IDbConnection dbConnection, int id) =>
 {
     var sql = "DELETE FROM Employees WHERE Id = @Id";
@@ -110,6 +109,7 @@ public class Department
     public string department_location{ get; set; }
 }
 
+// Classe Employee - Department
 public class EmployeeWithDepartment : Employee
 {
     public string department_name { get; set; }
