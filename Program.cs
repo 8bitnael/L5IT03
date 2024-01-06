@@ -1,3 +1,7 @@
+/**
+* L5IT03 C# Programming
+* Daniele Castrovinci
+**/
 using System.Data;
 using System.Data.SqlClient;
 using Dapper;
